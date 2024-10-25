@@ -51,10 +51,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="followme"
+        name="myfamily"
         options={{
-          title: "follow me",
-          tabBarIcon: ({ color }) => <TabBarIcon name="grav" color={color} />,
+          title: "My Family",
+          tabBarIcon: ({ color }) => <TabBarIcon name="group" color={color} />,
         }}
       />
       <Tabs.Screen
