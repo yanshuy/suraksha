@@ -105,13 +105,9 @@ export default function SOSPage() {
         />
         <Text style={styles.sosButtonText}>{recording ? "Stop" : "SOS"}</Text>
       </TouchableOpacity>
-      <Text style={styles.durationText}>{formatDuration(duration)}</Text>
-      <TouchableOpacity
-        style={styles.recordingsButton}
-        onPress={() => navigation.navigate("recordings")}
-      >
-        <Text style={styles.recordingsButtonText}>View Recordings</Text>
-      </TouchableOpacity>
+      {recording && (
+        <Text style={styles.durationText}>{formatDuration(duration)}</Text>
+      )}
     </View>
   );
 }
