@@ -50,17 +50,18 @@ export default function TabLayout() {
         name="chatbot"
         options={{
           headerShown: false,
-          title: "ChatBot",
+          title: "Shakti",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
-              name="record-circle"
-              size={26}
+              name="face-woman-outline"
+              size={28}
               color={color}
             />
           ),
         }}
       />
-             <Tabs.Screen
+
+      <Tabs.Screen
         name="here"
         options={{
           headerShown: false,
