@@ -309,7 +309,9 @@ export default function FamilyMembersPage() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <FontAwesome name="users" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>No emergency contacts added yet</Text>
+            <Text style={styles.emptyText}>
+              No emergency contacts added yet
+            </Text>
             <Text style={styles.emptySubtext}>
               Tap the + button to add someone
             </Text>
@@ -331,8 +333,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 75,
-    marginHorizontal: 10,
+    marginBottom: 30,
+    marginHorizontal: 12,
   },
   title: {
     fontSize: 25,
@@ -438,7 +440,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 0,
   },
-  emptyContainer:{
+  emptyContainer: {
     justifyContent: "center",
     alignItems: "center",
   },

@@ -22,6 +22,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarStyle: {
+          height: 70, // Adjust the height here
+          paddingBottom: 10, // Optional: Adjust padding for better alignment
+          paddingTop: 10,
+        },
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
@@ -86,6 +91,16 @@ export default function TabLayout() {
           title: "Contacts",
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="groups" size={36} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          headerShown: false,
+          title: "History",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="history" size={28} color={color} />
           ),
         }}
       />
