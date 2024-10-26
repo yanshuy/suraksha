@@ -1,32 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  SafeAreaView,
-} from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Colors from '@/constants/Colors';
 
 const Wakeword: React.FC = () => {
-  const [keyword, setKeyword] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [keyword, setKeyword] = useState<string>('');
+  const [isRecordingSample, setIsRecordingSample] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const backgroundListeningRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
-      if (recording) {
-        recording.stopAndUnloadAsync();
+      if (backgroundListeningRef.current) {
+        clearInterval(backgroundListeningRef.current);
       }
     };
   }, []);
 
-  const startRecording = async () => {
+  const requestMicPermission = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant microphone permissions for continuous listening.');
+      return false;
+    }
+    return true;
+  };
+
+  const startRecordingSample = async () => {
     try {
-      await Audio.requestPermissionsAsync();
+      const hasPermission = await requestMicPermission();
+      if (!hasPermission) return;
+
+      console.log('Starting to record sample...');
+      setIsRecordingSample(true);
+
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -37,70 +48,149 @@ const Wakeword: React.FC = () => {
       );
 
       setRecording(recording);
-      setIsRecording(true);
-    } catch (err) {
-      console.error('Failed to start recording', err);
+    } catch (error) {
+      console.error('Error starting recording:', error);
       Alert.alert('Error', 'Failed to start recording. Please try again.');
+      setIsRecordingSample(false);
     }
   };
 
-  const stopRecording = async () => {
-    if (!recording) return;
-
-    setIsRecording(false);
+  const stopRecordingSample = async () => {
     try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      console.log('Recording stopped and stored at', uri);
-      // Here you would typically send the audio file to your backend for processing
-      Alert.alert('Success', 'Voice sample recorded successfully!');
-    } catch (err) {
-      console.error('Failed to stop recording', err);
-      Alert.alert('Error', 'Failed to save recording. Please try again.');
-    }
+      setIsRecordingSample(false);
+      setIsSaving(true);
+      await recording?.stopAndUnloadAsync();
+      const uri = recording?.getURI();
+      console.log('Recording saved at', uri);
 
-    setRecording(null);
+      if (uri) {
+        await saveAudioToBackend(uri);
+      }
+
+      setRecording(null);
+      Alert.alert('Sample Recorded', 'Your wake word sample has been saved successfully.');
+    } catch (error) {
+      console.error('Error stopping recording:', error);
+      Alert.alert('Error', 'Failed to save the recording. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSubmit = () => {
-    if (keyword.trim() === '') {
-      Alert.alert('Error', 'Please enter a distress keyword');
-      return;
+  const saveAudioToBackend = async (uri: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', {
+        uri: uri,
+        type: 'audio/m4a',
+        name: 'wakeword_sample.m4a',
+      });
+      formData.append('keyword', keyword);
+
+      const response = await fetch('https://live-merely-drum.ngrok-free.app/save/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save audio on the server');
+      }
+
+      console.log('Audio saved successfully on the server');
+    } catch (error) {
+      console.error('Error saving audio to backend:', error);
+      throw error;
     }
-    // Here you would typically send the keyword to your backend
-    console.log('Distress keyword set:', keyword);
-    Alert.alert('Success', 'Distress keyword set successfully!');
+  };
+
+  const startListeningForWakeWord = async () => {
+    const hasPermission = await requestMicPermission();
+    if (!hasPermission) return;
+
+    setIsListening(true);
+    console.log("Listening for wake word...");
+
+    // Simulating continuous listening and keyword detection
+    backgroundListeningRef.current = setInterval(async () => {
+      try {
+        const response = await fetch('https://live-merely-drum.ngrok-free.app/verify/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ keyword }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.detected) {
+            sendSOSAlert();
+          }
+        }
+      } catch (error) {
+        console.error('Error verifying keyword:', error);
+      }
+    }, 5000); 
+  };
+
+  const stopListening = () => {
+    setIsListening(false);
+    if (backgroundListeningRef.current) {
+      clearInterval(backgroundListeningRef.current);
+    }
+    console.log("Stopped listening.");
+  };
+
+  const sendSOSAlert = () => {
+    Alert.alert("SOS Alert Sent!", "Wake word detected, sending SOS...");
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Set Distress Keyword</Text>
-      <TextInput
-        style={styles.input}
-        value={keyword}
-        onChangeText={setKeyword}
-        placeholder="Enter your distress keyword"
-      />
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Set Keyword</Text>
-      </TouchableOpacity>
-
-      <View style={styles.recordingContainer}>
-        <Text style={styles.recordingTitle}>Record Voice Sample</Text>
-        <TouchableOpacity
-          style={[styles.recordButton, isRecording && styles.recordingActive]}
-          onPress={isRecording ? stopRecording : startRecording}
-        >
-          <Ionicons
-            name={isRecording ? 'stop' : 'mic'}
-            size={24}
-            color="white"
-          />
-        </TouchableOpacity>
-        <Text style={styles.recordingStatus}>
-          {isRecording ? 'Recording...' : 'Press to record'}
-        </Text>
+      <Text style={styles.title}>Wakeword Setup</Text>
+      
+      <View style={styles.inputContainer}>
+        <TextInput
+          placeholder="Enter your distress keyword"
+          value={keyword}
+          onChangeText={setKeyword}
+          style={styles.input}
+          accessibilityLabel="Enter your distress keyword"
+        />
+        {keyword.trim().length > 0 && (
+          <Ionicons name="checkmark-circle" size={24} color="green" style={styles.tickIcon} />
+        )}
       </View>
+      
+      <TouchableOpacity
+        style={[styles.button, isRecordingSample && styles.activeButton]}
+        onPress={isRecordingSample ? stopRecordingSample : startRecordingSample}
+        disabled={isSaving}
+      >
+        <Ionicons name={isRecordingSample ? "stop-circle" : "mic"} size={24} color="white" />
+        <Text style={styles.buttonText}>
+          {isRecordingSample ? 'Stop Recording' : 'Record Wakeword Sample'}
+        </Text>
+      </TouchableOpacity>
+  
+      {isSaving && <ActivityIndicator size="large" color="#0000ff" />}
+      
+      <TouchableOpacity
+        style={[styles.button, isListening && styles.activeButton]}
+        onPress={isListening ? stopListening : startListeningForWakeWord}
+      >
+        <Ionicons name={isListening ? "ear-off" : "ear"} size={24} color="white" />
+        <Text style={styles.buttonText}>
+          {isListening ? 'Stop Listening' : 'Start Listening for Wake Word'}
+        </Text>
+      </TouchableOpacity>
+  
+      <Text style={styles.statusText}>
+        {isListening ? 'Listening for wake word...' : 'Not listening'}
+      </Text>
     </SafeAreaView>
   );
 };
@@ -117,51 +207,49 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#333',
   },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    position: 'relative',
+  },
   input: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
+    padding: 15,
+    paddingRight: 40,
     fontSize: 16,
     backgroundColor: 'white',
   },
-  submitButton: {
+  tickIcon: {
+    position: 'absolute',
+    right: 10,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#007AFF',
     borderRadius: 5,
     padding: 15,
-    alignItems: 'center',
+    marginBottom: 15,
+  },
+  activeButton: {
+    backgroundColor: '#34C759',
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 10,
   },
-  recordingContainer: {
-    marginTop: 40,
-    alignItems: 'center',
-  },
-  recordingTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 20,
-    color: '#333',
-  },
-  recordButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FF3B30',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  recordingActive: {
-    backgroundColor: '#34C759',
-  },
-  recordingStatus: {
-    marginTop: 10,
-    fontSize: 14,
+  statusText: {
+    fontSize: 16,
     color: '#666',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 
