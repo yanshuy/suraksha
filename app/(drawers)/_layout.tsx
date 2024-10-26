@@ -1,8 +1,8 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { Drawer } from 'expo-router/drawer';
-import { Text, View } from '@/components/Themed';
-import { Image, TouchableOpacity } from 'react-native';
+import { Text, View} from '@/components/Themed';
+import { Image, TouchableOpacity, Stylesheet, StyleSheet } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 
@@ -31,7 +31,6 @@ export default function Layout() {
               <Text style={{ fontSize: 22, fontWeight: '600' }}>सुरक्षा</Text>
             </View>
 
-            {/* Default Drawer Items */}
             <DrawerItemList {...props} />
           </DrawerContentScrollView>
         )}
@@ -42,6 +41,7 @@ export default function Layout() {
             drawerLabel: 'Home',
             drawerIcon: () => <Feather name="home" size={24} color="black" />,
             headerTitle: () => (
+              <View style={{flexDirection: 'row', justifyContent: "space-between", alignItems:"center", width: "100%"}}>
               <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16 }}>
                 <Image
                   style={{ height: 35, width: 35, marginRight: 16 }}
@@ -49,6 +49,13 @@ export default function Layout() {
                 />
                 <Text style={{ fontSize: 22, fontWeight: '600' }}>सुरक्षा</Text>
               </View>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => navigation.navigate('login' as never)}
+              >
+                <Text style={styles.buttonText}>Login</Text>
+              </TouchableOpacity>
+                      </View>
             ),
             headerStyle: {
               height: 110,
@@ -74,3 +81,19 @@ export default function Layout() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: '#e04759',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+})

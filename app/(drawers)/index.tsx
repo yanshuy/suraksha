@@ -21,7 +21,7 @@ const Profile = () => {
       <Text style={styles.detail}>Phone: {user.phone}</Text>
       
       {/* Button to navigate to Special Keyword page */}
-      <Link href='wakeword' >
+      <Link href="/wakeword" asChild>
         <Button
             title="Set Distress Keyword"
             color="#FF6347" // Customize button color

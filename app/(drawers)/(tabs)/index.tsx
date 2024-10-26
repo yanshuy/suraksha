@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Button,
 } from "react-native";
 import { Audio } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
