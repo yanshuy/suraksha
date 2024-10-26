@@ -155,6 +155,10 @@ export default function SOSPage() {
 
   return (
     <View style={styles.container}>
+      <Button
+        title="login"
+        onPress={() => navigation.navigate("login" as never)}
+      />
       <TouchableOpacity
         style={[
           styles.sosButton,
@@ -205,7 +209,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "#e04759",
+    backgroundColor: "red",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
