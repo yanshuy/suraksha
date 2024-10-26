@@ -152,13 +152,18 @@ const Wakeword: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Wakeword Setup</Text>
       
-      <TextInput
-        placeholder="Enter your distress keyword"
-        value={keyword}
-        onChangeText={setKeyword}
-        style={styles.input}
-        accessibilityLabel="Enter your distress keyword"
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          placeholder="Enter your distress keyword"
+          value={keyword}
+          onChangeText={setKeyword}
+          style={styles.input}
+          accessibilityLabel="Enter your distress keyword"
+        />
+        {keyword.trim().length > 0 && (
+          <Ionicons name="checkmark-circle" size={24} color="green" style={styles.tickIcon} />
+        )}
+      </View>
       
       <TouchableOpacity
         style={[styles.button, isRecordingSample && styles.activeButton]}
@@ -170,7 +175,7 @@ const Wakeword: React.FC = () => {
           {isRecordingSample ? 'Stop Recording' : 'Record Wakeword Sample'}
         </Text>
       </TouchableOpacity>
-
+  
       {isSaving && <ActivityIndicator size="large" color="#0000ff" />}
       
       <TouchableOpacity
@@ -182,7 +187,7 @@ const Wakeword: React.FC = () => {
           {isListening ? 'Stop Listening' : 'Start Listening for Wake Word'}
         </Text>
       </TouchableOpacity>
-
+  
       <Text style={styles.statusText}>
         {isListening ? 'Listening for wake word...' : 'Not listening'}
       </Text>
@@ -202,14 +207,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#333',
   },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    position: 'relative',
+  },
   input: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
     padding: 15,
-    marginBottom: 20,
+    paddingRight: 40,
     fontSize: 16,
     backgroundColor: 'white',
+  },
+  tickIcon: {
+    position: 'absolute',
+    right: 10,
   },
   button: {
     flexDirection: 'row',

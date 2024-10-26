@@ -70,7 +70,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="phone"
+        name="history"
         options={{
           headerShown: false,
           title: "History",
