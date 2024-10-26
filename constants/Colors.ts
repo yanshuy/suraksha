@@ -1,6 +1,3 @@
-const tintColorLight = '#edf2f4';
-const tintColorDark = '#fff';
-
 export default {
   light: {
     text: '#000',
@@ -20,5 +17,9 @@ export default {
     main: "#d90429",
     sec: "#ef233c",
   },
-  gray: "#ef233c"
+  gray: {
+    light: "#ef233c",
+    medium: "#edf2f4" 
+  },
+  black: "#2b2d42"
 };
