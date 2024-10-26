@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Audio } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
@@ -117,9 +111,9 @@ export default function SOSPage() {
         uri: uri,
         type: "audio/m4a",
         name: "recording.m4a",
-        latitude: 1,
-        longitude: 1,
       } as any);
+      formData.append("latitude", lat?.toString() || "");
+      formData.append("longitude", long?.toString() || "");
 
       const response = await fetch(
         "https://live-merely-drum.ngrok-free.app/sos/add/",
