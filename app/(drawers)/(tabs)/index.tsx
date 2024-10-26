@@ -7,17 +7,19 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Platform,
+  Button,
 } from "react-native";
 import { Audio } from "expo-av";
+import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
-import * as FileSystem from "expo-file-system";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RECORDING_DURATION = 30; // 30 seconds
 
 export default function SOSPage() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [duration, setDuration] = useState(0);
+  const navigation = useNavigation();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -46,44 +48,17 @@ export default function SOSPage() {
 
   const startRecording = async () => {
     try {
-      console.log("Requesting permissions..");
-      const permissionResponse = await Audio.requestPermissionsAsync();
-      if (!permissionResponse.granted) {
-        throw new Error("Permissions not granted");
-      }
-
+      await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
-
-      console.log("Starting recording..");
-      const { recording } = await Audio.Recording.createAsync({
-        isMeteringEnabled: true,
-        android: {
-          extension: ".m4a",
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-        },
-        ios: {
-          extension: ".m4a",
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-        web: {}, // Add this line
-      });
-
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
       setRecording(recording);
-      console.log("Recording started");
 
+      // Set timer to auto-stop after 30 seconds
       timerRef.current = setTimeout(() => {
         stopRecording();
       }, RECORDING_DURATION * 1000);
@@ -93,105 +68,72 @@ export default function SOSPage() {
     }
   };
 
-  const sendRecordingToBackend = async (fileUri: string) => {
-    try {
-      console.log("Preparing to send recording...");
-      console.log("File URI:", fileUri);
-
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      console.log("File info:", fileInfo);
-
-      if (!fileInfo.exists) {
-        throw new Error("Recording file does not exist");
-      }
-
-      // Read the file as base64
-      const base64Audio = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // Create a Blob from the base64 data
-      const byteCharacters = atob(base64Audio);
-      const byteArrays = [];
-      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice = byteCharacters.slice(offset, offset + 512);
-        const byteNumbers = new Array(slice.length);
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-        }
-        byteArrays.push(new Uint8Array(byteNumbers));
-      }
-      const audioBlob = new Blob(byteArrays, { type: "audio/m4a" });
-
-      const formData = new FormData();
-      formData.append("audio", audioBlob, "recording.m4a");
-      formData.append("latitude", "1");
-      formData.append("longitude", "2");
-
-      console.log("Sending request...");
-
-      const response = await fetch(
-        "https://live-merely-drum.ngrok-free.app/sos/add/",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "multipart/form-data",
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMwMDAxMjU1LCJpYXQiOjE3Mjk5MTQ4NTUsImp0aSI6IjNjYzI1NGY1M2Q1NzQ5NTQ4NzNhZjU5ZWM1YTVmNDNlIiwidXNlcl9pZCI6MX0.ohIS84_s_8DTM3s5eWH-36rW6ob6lhM4bIXHe6ytwz8",
-          },
-          body: formData,
-        }
-      );
-
-      const responseText = await response.text();
-      console.log("Server response:", responseText);
-
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status} - ${responseText}`);
-      }
-
-      console.log("Recording sent successfully");
-      return true;
-    } catch (error) {
-      console.error("Error sending recording:", error);
-      throw error;
-    }
-  };
-
   const stopRecording = async () => {
-    if (!recording) {
-      console.log("No recording to stop");
-      return;
-    }
+    if (!recording) return;
 
     try {
-      console.log("Stopping recording..");
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
-      console.log("Recording stopped at uri:", uri);
       setRecording(null);
-
-      if (!uri) {
-        throw new Error("No recording URI available");
+      if (uri) {
+        await saveRecording(uri);
+        await sendRecordingToBackend(uri);
+        Alert.alert("Success", "Recording saved and sent successfully");
       }
 
-      const fileInfo = await FileSystem.getInfoAsync(uri);
-      console.log("File info after recording:", fileInfo);
-
-      if (!fileInfo.exists) {
-        throw new Error("Recording file not found");
-      }
-
-      await sendRecordingToBackend(uri);
-      Alert.alert("Success", "Recording saved and sent successfully");
-
+      // Clear the auto-stop timer
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     } catch (err) {
-      console.error("Failed to stop recording:", err);
-      Alert.alert("Error", "Failed to process recording. Please try again.");
+      console.error("Failed to stop recording", err);
+      Alert.alert("Error", "Failed to stop recording. Please try again.");
+    }
+  };
+
+  const saveRecording = async (uri: string) => {
+    try {
+      const recordings = await AsyncStorage.getItem("recordings");
+      const currentRecordings = recordings ? JSON.parse(recordings) : [];
+      const newRecording = {
+        id: Date.now().toString(),
+        uri: uri,
+        date: new Date().toISOString().split("T")[0],
+      };
+      const updatedRecordings = [...currentRecordings, newRecording];
+      await AsyncStorage.setItem(
+        "recordings",
+        JSON.stringify(updatedRecordings)
+      );
+    } catch (error) {
+      console.error("Failed to save recording", error);
+      Alert.alert("Error", "Failed to save recording");
+    }
+  };
+
+  const sendRecordingToBackend = async () => {
+    try {
+      const response = await fetch(
+        "https://live-merely-drum.ngrok-free.app/sos/add/",
+        {
+          method: "POST",
+          body: JSON.stringify({ latitude: 1, longitude: 2 }),
+          headers: {
+            "Content-Type": "text/plain",
+            Authorization:
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMwMDAxMjU1LCJpYXQiOjE3Mjk5MTQ4NTUsImp0aSI6IjNjYzI1NGY1M2Q1NzQ5NTQ4NzNhZjU5ZWM1YTVmNDNlIiwidXNlcl9pZCI6MX0.ohIS84_s_8DTM3s5eWH-36rW6ob6lhM4bIXHe6ytwz8",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send recording to backend");
+      }
+
+      console.log("Recording sent to backend successfully");
+    } catch (error) {
+      console.error("Failed to send recording to backend", error);
+      Alert.alert("Error", "Failed to send recording to backend");
     }
   };
 
@@ -214,10 +156,11 @@ export default function SOSPage() {
         onPress={recording ? stopRecording : startRecording}
       >
         <FontAwesome
-          name={recording ? "stop-circle" : "exclamation-triangle"}
+          name={recording ? "stop-circle" : ""}
           size={80}
           color="white"
         />
+
         <Text
           style={
             recording
@@ -271,5 +214,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 20,
     color: "#333",
+  },
+  recordingsButton: {
+    marginTop: 40,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#0074D9",
+    borderRadius: 5,
+  },
+  recordingsButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
   },
 });

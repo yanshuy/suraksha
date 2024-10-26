@@ -73,7 +73,7 @@ export default function Layout() {
                     source={require("../../assets/icons/logo.png")}
                   />
                   <Text style={{ fontSize: 22, fontWeight: "600" }}>
-                    सुरक्षा
+                    Raksha
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -103,7 +103,7 @@ export default function Layout() {
           name="index"
           options={{
             title: "",
-            drawerLabel: 'Profile',
+            drawerLabel: "Profile",
             drawerIcon: () => <Feather name="user" size={24} color="black" />,
           }}
         />
@@ -114,7 +114,7 @@ export default function Layout() {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#e04759",
+    backgroundColor: "black",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
