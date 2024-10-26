@@ -1,15 +1,26 @@
-// Wakeword.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, TextInput, Alert } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import Colors from '@/constants/Colors';
 
-const Wakeword = () => {
+const Wakeword: React.FC = () => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [keyword, setKeyword] = useState<string>('');
-  const [detectedKeyword, setDetectedKeyword] = useState<string>('');
+  const [isRecordingSample, setIsRecordingSample] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const backgroundListeningRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to request microphone permission
+  useEffect(() => {
+    return () => {
+      if (backgroundListeningRef.current) {
+        clearInterval(backgroundListeningRef.current);
+      }
+    };
+  }, []);
+
   const requestMicPermission = async () => {
     const { status } = await Audio.requestPermissionsAsync();
     if (status !== 'granted') {
@@ -19,57 +30,82 @@ const Wakeword = () => {
     return true;
   };
 
-  // Function to start recording a sample
   const startRecordingSample = async () => {
     try {
       const hasPermission = await requestMicPermission();
       if (!hasPermission) return;
 
       console.log('Starting to record sample...');
+      setIsRecordingSample(true);
 
-      const recordingOptions = {
-        android: {
-          extension: '.m4a',
-          outputFormat: Audio.RecordingOptionsAndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.RecordingOptionsAndroidAudioEncoder.AAC,
-          sampleRate: 44100,
-          numberOfChannels: 2,
-          bitRate: 128000,
-        },
-        ios: {
-          extension: '.caf',
-          audioQuality: Audio.RecordingOptionsIOSAudioQuality.High,
-          sampleRate: 44100,
-          numberOfChannels: 2,
-          bitRate: 128000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-      };
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
 
-      const newRecording = await Audio.Recording.createAsync(recordingOptions);
-      setRecording(newRecording.recording);
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      setRecording(recording);
     } catch (error) {
       console.error('Error starting recording:', error);
+      Alert.alert('Error', 'Failed to start recording. Please try again.');
+      setIsRecordingSample(false);
     }
   };
 
-  // Function to stop recording and save the sample
   const stopRecordingSample = async () => {
     try {
+      setIsRecordingSample(false);
+      setIsSaving(true);
       await recording?.stopAndUnloadAsync();
       const uri = recording?.getURI();
       console.log('Recording saved at', uri);
-      // Use the URI to save or process the recording for model training
+
+      if (uri) {
+        await saveAudioToBackend(uri);
+      }
+
       setRecording(null);
-      Alert.alert('Sample Recorded', `Your sample has been saved at: ${uri}`);
+      Alert.alert('Sample Recorded', 'Your wake word sample has been saved successfully.');
     } catch (error) {
       console.error('Error stopping recording:', error);
+      Alert.alert('Error', 'Failed to save the recording. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Function to start listening for the wake word
+  const saveAudioToBackend = async (uri: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', {
+        uri: uri,
+        type: 'audio/m4a',
+        name: 'wakeword_sample.m4a',
+      });
+      formData.append('keyword', keyword);
+
+      const response = await fetch('https://live-merely-drum.ngrok-free.app/save/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save audio on the server');
+      }
+
+      console.log('Audio saved successfully on the server');
+    } catch (error) {
+      console.error('Error saving audio to backend:', error);
+      throw error;
+    }
+  };
+
   const startListeningForWakeWord = async () => {
     const hasPermission = await requestMicPermission();
     if (!hasPermission) return;
@@ -77,65 +113,128 @@ const Wakeword = () => {
     setIsListening(true);
     console.log("Listening for wake word...");
 
-    // Placeholder for actual keyword detection logic
-    // For demonstration, we simulate wake word detection with a timeout
-    setTimeout(() => {
-      if (keyword.toLowerCase() === detectedKeyword.toLowerCase()) {
-        sendSOSAlert();
+    // Simulating continuous listening and keyword detection
+    backgroundListeningRef.current = setInterval(async () => {
+      try {
+        const response = await fetch('https://live-merely-drum.ngrok-free.app/verify/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ keyword }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.detected) {
+            sendSOSAlert();
+          }
+        }
+      } catch (error) {
+        console.error('Error verifying keyword:', error);
       }
-    }, 10000); // Simulate detection after 10 seconds
+    }, 5000); 
   };
 
-  // Function to stop listening
   const stopListening = () => {
     setIsListening(false);
+    if (backgroundListeningRef.current) {
+      clearInterval(backgroundListeningRef.current);
+    }
     console.log("Stopped listening.");
   };
 
-  // Function to trigger SOS alert
   const sendSOSAlert = () => {
-    if (isListening) {
-      Alert.alert("SOS Alert Sent!", "Wake word detected, sending SOS...");
-      // Additional SOS logic (e.g., API call, notification)
-    }
+    Alert.alert("SOS Alert Sent!", "Wake word detected, sending SOS...");
   };
 
-  // Effect to start listening for the wake word when the component mounts
-  useEffect(() => {
-    startListeningForWakeWord();
-
-    return () => {
-      stopListening();
-    };
-  }, []);
-
   return (
-    <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 18, marginBottom: 10 }}>Wakeword Detection</Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Wakeword Setup</Text>
       
-      {/* Input field for the distress keyword */}
       <TextInput
-        placeholder="Type your distress keyword"
+        placeholder="Enter your distress keyword"
         value={keyword}
         onChangeText={setKeyword}
-        style={{ borderWidth: 1, padding: 10, marginBottom: 10 }}
+        style={styles.input}
+        accessibilityLabel="Enter your distress keyword"
       />
       
-      {/* Button to record a sample */}
-      <Button
-        title={recording ? 'Stop Recording Sample' : 'Record Wakeword Sample'}
-        onPress={recording ? stopRecordingSample : startRecordingSample}
-      />
-      
-      {/* Toggle listening for wake word */}
-      <Button
-        title={isListening ? 'Stop Listening' : 'Start Listening for Wake Word'}
-        onPress={isListening ? stopListening : startListeningForWakeWord}
-      />
+      <TouchableOpacity
+        style={[styles.button, isRecordingSample && styles.activeButton]}
+        onPress={isRecordingSample ? stopRecordingSample : startRecordingSample}
+        disabled={isSaving}
+      >
+        <Ionicons name={isRecordingSample ? "stop-circle" : "mic"} size={24} color="white" />
+        <Text style={styles.buttonText}>
+          {isRecordingSample ? 'Stop Recording' : 'Record Wakeword Sample'}
+        </Text>
+      </TouchableOpacity>
 
-      <Text>{isListening ? 'Listening for wake word...' : 'Not listening'}</Text>
-    </View>
+      {isSaving && <ActivityIndicator size="large" color="#0000ff" />}
+      
+      <TouchableOpacity
+        style={[styles.button, isListening && styles.activeButton]}
+        onPress={isListening ? stopListening : startListeningForWakeWord}
+      >
+        <Ionicons name={isListening ? "ear-off" : "ear"} size={24} color="white" />
+        <Text style={styles.buttonText}>
+          {isListening ? 'Stop Listening' : 'Start Listening for Wake Word'}
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={styles.statusText}>
+        {isListening ? 'Listening for wake word...' : 'Not listening'}
+      </Text>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#F0F0F5',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#333',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 15,
+    marginBottom: 20,
+    fontSize: 16,
+    backgroundColor: 'white',
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',
+    borderRadius: 5,
+    padding: 15,
+    marginBottom: 15,
+  },
+  activeButton: {
+    backgroundColor: '#34C759',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 10,
+  },
+  statusText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+});
 
 export default Wakeword;
