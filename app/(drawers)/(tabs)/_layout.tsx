@@ -1,12 +1,12 @@
 import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
-import { Pressable } from "react-native";
 
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { Image } from "react-native"
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
@@ -75,12 +75,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="track"
+        name="CloseOnes"
         options={{
           headerShown: false,
           title: "Track",
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="groups" size={36} color={color} />
+          tabBarIcon: ({focused, color }) => (
+            <Image
+            style={{ height: 35, width: 35, resizeMode: 'contain', tintColor: focused ? 'black' : '#777' }}
+            source={require("../../../assets/icons/trackicon.png")}
+          />
           ),
         }}
       />
