@@ -73,6 +73,7 @@ export default function Layout() {
         <Drawer.Screen
           name="index"
           options={{
+            title: "",
             drawerLabel: 'Profile',
             drawerIcon: () => <Feather name="user" size={24} color="black" />,
           }}

@@ -1,84 +1,107 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import * as Audio from 'expo-av'; // Make sure to install expo-av
-import { Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  SafeAreaView,
+} from 'react-native';
+import { Audio } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
 
-const Wakeword = () => {
+const Wakeword: React.FC = () => {
   const [keyword, setKeyword] = useState('');
-  const [recording, setRecording] = useState<null | Audio.Recording>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (recording) {
+        recording.stopAndUnloadAsync();
+      }
+    };
+  }, []);
 
   const startRecording = async () => {
     try {
-      const { granted } = await Audio.requestPermissionsAsync();
-      if (granted) {
-        const { recording } = await Audio.Recording.createAsync({
-          // Recording settings (modify if needed)
-          android: {
-            extension: '.mp3',
-            outputFormat: Audio.RecordingOptionsAndroid.OUTPUT_FORMAT_MPEG_4,
-            audioEncoder: Audio.RecordingOptionsAndroid.AUDIO_ENCODER_AAC,
-          },
-          ios: {
-            extension: '.m4a',
-            outputFormat: Audio.RecordingOptionsIOS.IOS_AUDIO_RECORDING_FORMAT_M4A,
-          },
-        });
-        setRecording(recording);
-        setIsRecording(true);
-      } else {
-        Alert.alert('Permission not granted for audio recording');
-      }
-    } catch (error) {
-      console.error('Error starting recording', error);
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start recording', err);
+      Alert.alert('Error', 'Failed to start recording. Please try again.');
     }
   };
 
   const stopRecording = async () => {
+    if (!recording) return;
+
     setIsRecording(false);
-    if (recording) {
+    try {
       await recording.stopAndUnloadAsync();
-      const uri = recording.getURI(); // Use the URI to save or upload the recording
-      Alert.alert('Recording stopped', `Audio saved at: ${uri}`);
-      // You can save the keyword and audio URI to your database here
+      const uri = recording.getURI();
+      console.log('Recording stopped and stored at', uri);
+      // Here you would typically send the audio file to your backend for processing
+      Alert.alert('Success', 'Voice sample recorded successfully!');
+    } catch (err) {
+      console.error('Failed to stop recording', err);
+      Alert.alert('Error', 'Failed to save recording. Please try again.');
     }
+
+    setRecording(null);
   };
 
   const handleSubmit = () => {
-    if (keyword) {
-      // Logic to save the keyword and the audio URI
-      Alert.alert('Keyword Saved', `Your distress keyword "${keyword}" has been saved.`);
-      // Optionally navigate back to the profile page
-    } else {
-      Alert.alert('Input Error', 'Please enter a keyword.');
+    if (keyword.trim() === '') {
+      Alert.alert('Error', 'Please enter a distress keyword');
+      return;
     }
+    // Here you would typically send the keyword to your backend
+    console.log('Distress keyword set:', keyword);
+    Alert.alert('Success', 'Distress keyword set successfully!');
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Set Your Distress Keyword</Text>
-      
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Set Distress Keyword</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter your keyword"
         value={keyword}
         onChangeText={setKeyword}
+        placeholder="Enter your distress keyword"
       />
-      
-      {/* Recording Button */}
-      <Button
-        title={isRecording ? 'Stop Recording' : 'Start Recording'}
-        onPress={isRecording ? stopRecording : startRecording}
-        color="#FF6347" // Customize button color
-      />
-      
-      {/* Submit Button */}
-      <Button
-        title="Submit"
-        onPress={handleSubmit}
-        color="#FF6347" // Customize button color
-      />
-    </View>
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Set Keyword</Text>
+      </TouchableOpacity>
+
+      <View style={styles.recordingContainer}>
+        <Text style={styles.recordingTitle}>Record Voice Sample</Text>
+        <TouchableOpacity
+          style={[styles.recordButton, isRecording && styles.recordingActive]}
+          onPress={isRecording ? stopRecording : startRecording}
+        >
+          <Ionicons
+            name={isRecording ? 'stop' : 'mic'}
+            size={24}
+            color="white"
+          />
+        </TouchableOpacity>
+        <Text style={styles.recordingStatus}>
+          {isRecording ? 'Recording...' : 'Press to record'}
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -86,20 +109,59 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#F0F0F5',
   },
-  header: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#333',
   },
   input: {
-    height: 50,
-    borderColor: 'gray',
     borderWidth: 1,
+    borderColor: '#ddd',
     borderRadius: 5,
-    paddingHorizontal: 10,
+    padding: 10,
     marginBottom: 20,
+    fontSize: 16,
+    backgroundColor: 'white',
+  },
+  submitButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 5,
+    padding: 15,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  recordingContainer: {
+    marginTop: 40,
+    alignItems: 'center',
+  },
+  recordingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 20,
+    color: '#333',
+  },
+  recordButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  recordingActive: {
+    backgroundColor: '#34C759',
+  },
+  recordingStatus: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
   },
 });
 

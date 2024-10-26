@@ -7,15 +7,15 @@ export default {
     tabIconSelected: "#000",
   },
   dark: {
-    text: tintColorLight,
+    text: '#fff',
     background: '#000',
-    tint: tintColorDark,
+    tint: '#000',
     tabIconDefault: '#ccc',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: '#000',
   },
   red:{
-    main: "#d90429",
-    sec: "#ef233c",
+    sec: "#d90429",
+    main: "#ef233c",
   },
   gray: {
     light: "#ef233c",

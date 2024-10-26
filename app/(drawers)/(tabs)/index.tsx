@@ -155,10 +155,6 @@ export default function SOSPage() {
 
   return (
     <View style={styles.container}>
-      <Button
-        title="login"
-        onPress={() => navigation.navigate("login" as never)}
-      />
       <TouchableOpacity
         style={[
           styles.sosButton,
