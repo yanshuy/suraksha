@@ -11,7 +11,7 @@ import {
 import WebView from "react-native-webview";
 import { MaterialIcons } from "@expo/vector-icons";
 
-// Types
+
 interface Location {
   latitude: number;
   longitude: number;
@@ -43,7 +43,7 @@ const generateMapHTML = (latitude: number, longitude: number, name: string) => `
       <div id="map"></div>
       <script>
         const map = L.map('map').setView([${latitude}, ${longitude}], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
           attribution: '© OpenStreetMap contributors'
         }).addTo(map);
         L.marker([${latitude}, ${longitude}])
@@ -53,6 +53,7 @@ const generateMapHTML = (latitude: number, longitude: number, name: string) => `
     </body>
   </html>
 `;
+
 
 const ContactCard: React.FC<ContactCardProps> = ({ contact }) => {
   const handleCallPress = () => {
