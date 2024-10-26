@@ -141,6 +141,8 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     backgroundColor: "red",
+    display: "flex",
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
