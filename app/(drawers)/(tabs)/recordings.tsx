@@ -142,9 +142,6 @@ export default function RecordingsPage() {
       </TouchableOpacity>
       <View style={styles.recordingInfo}>
         <Text style={styles.dateText}>{item.date}</Text>
-        <Text numberOfLines={1} ellipsizeMode="middle" style={styles.uriText}>
-          {item.uri}
-        </Text>
       </View>
       <TouchableOpacity
         onPress={() => deleteRecording(item.id)}
@@ -188,12 +185,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5FCFF",
-    padding: 20,
+    padding: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
+    marginHorizontal: 10,
     color: "#333",
   },
   listContainer: {
@@ -204,15 +202,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "white",
     borderRadius: 10,
-    padding: 15,
+    padding: 25,
     marginBottom: 10,
+    marginHorizontal: 10,
+    marginTop: 5,
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     shadowRadius: 3.84,
   },
   playButton: {

@@ -99,11 +99,30 @@ export default function SOSPage() {
         onPress={recording ? stopRecording : startRecording}
       >
         <FontAwesome
-          name={recording ? "stop-circle" : "dot-circle-o"}
+          name={recording ? "stop-circle" : ""}
           size={80}
           color="white"
         />
-        <Text style={styles.sosButtonText}>{recording ? "Stop" : "SOS"}</Text>
+
+        <Text
+          style={
+            recording
+              ? {
+                  fontSize: 24,
+                  fontWeight: "bold",
+                  color: "white",
+                  marginTop: 10,
+                }
+              : {
+                  fontSize: 42,
+                  fontWeight: "bold",
+                  color: "white",
+                  marginTop: 10,
+                }
+          }
+        >
+          {recording ? "Stop" : "SOS"}
+        </Text>
       </TouchableOpacity>
       {recording && (
         <Text style={styles.durationText}>{formatDuration(duration)}</Text>
@@ -123,7 +142,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "#FF4136",
+    backgroundColor: "red",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
@@ -135,12 +154,7 @@ const styles = StyleSheet.create({
   recordingButton: {
     backgroundColor: "#FF851B",
   },
-  sosButtonText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
-    marginTop: 10,
-  },
+
   durationText: {
     fontSize: 48,
     fontWeight: "bold",

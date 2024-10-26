@@ -140,6 +140,7 @@ export default function FamilyMembersPage() {
         },
       ]
     );
+    console.log(familyMembers.filter((member) => member.id !== id));
   };
 
   const { handleShareLocation } = useLocationSharing({
@@ -153,81 +154,47 @@ export default function FamilyMembersPage() {
   });
 
   const renderMember = ({ item }: { item: FamilyMember }) => (
-    <View
-      style={styles.memberCard}
-      accessible={true}
-      accessibilityLabel={`Family member card for ${item.name}`}
-      accessibilityHint="Double tap to expand options"
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>
-            {item.name
-              .split(" ")
-              .map((name) => name[0])
-              .join("")
-              .toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.headerInfo}>
-          <Text style={styles.memberName}>{item.name}</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Family Member</Text>
-          </View>
-        </View>
+    <View style={styles.memberCard}>
+      <View style={styles.memberInfo}>
+        <Text style={styles.memberName}>{item.name}</Text>
+        <Text style={styles.memberDetail}>{item.email}</Text>
+        <Text style={styles.memberDetail}>{item.phone}</Text>
       </View>
-
-      <View style={styles.cardContent}>
-        <View style={styles.contactInfo}>
-          <View
-            style={styles.infoRow}
-            accessible={true}
-            accessibilityLabel={`Email: ${item.email}`}
-          >
-            <FontAwesome name="envelope" size={16} color="#666" />
-            <Text style={styles.infoText}>{item.email}</Text>
-          </View>
-          <View
-            style={styles.infoRow}
-            accessible={true}
-            accessibilityLabel={`Phone: ${item.phone}`}
-          >
-            <FontAwesome name="phone" size={16} color="#666" />
-            <Text style={styles.infoText}>{item.phone}</Text>
-          </View>
-        </View>
-
-        <View style={styles.actionButtons}>
+      <View style={styles.memberActions}>
+        <View>
           <TouchableOpacity
-            style={[styles.actionButton, styles.locationButton]}
             onPress={() => handleShareLocation(item)}
-            accessible={true}
-            accessibilityLabel={`Share location with ${item.name}`}
-            accessibilityHint="Shares your current location via WhatsApp"
+            style={[styles.actionButton, styles.locationButton]}
           >
-            <FontAwesome name="location-arrow" size={20} color="#ffffff" />
+            <FontAwesome name="location-arrow" size={20} color="#0074D9" />
             <Text style={styles.actionButtonText}>Share Location</Text>
           </TouchableOpacity>
-
-          <View style={styles.secondaryActions}>
-            <TouchableOpacity
-              style={[styles.iconButton, styles.editButton]}
-              onPress={() => handleEditMember(item)}
-              accessible={true}
-              accessibilityLabel={`Edit ${item.name}'s information`}
-            >
-              <FontAwesome name="edit" size={20} color="#2ECC40" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.iconButton, styles.deleteButton]}
-              onPress={() => handleDeleteMember(item.id)}
-              accessible={true}
-              accessibilityLabel={`Delete ${item.name} from family members`}
-            >
-              <FontAwesome name="trash" size={20} color="#FF4136" />
-            </TouchableOpacity>
-          </View>
+        </View>
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            marginTop: 5,
+            alignSelf: "flex-end",
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => handleEditMember(item)}
+            style={styles.actionButton}
+          >
+            <FontAwesome
+              name="edit"
+              style={{ marginTop: 2 }}
+              size={20}
+              color="#2ECC40"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleDeleteMember(item.id)}
+            style={styles.actionButton}
+          >
+            <FontAwesome name="trash" size={20} color="#FF4136" />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -241,13 +208,57 @@ export default function FamilyMembersPage() {
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => setIsAddingMember(true)}
-            accessible={true}
-            accessibilityLabel="Add new family member"
           >
             <FontAwesome name="plus" size={20} color="white" />
           </TouchableOpacity>
         )}
       </View>
+
+      {(isAddingMember || editingMember) && (
+        <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            value={newMember.name}
+            onChangeText={(text) => setNewMember({ ...newMember, name: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={newMember.email}
+            onChangeText={(text) => setNewMember({ ...newMember, email: text })}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number (with country code)"
+            value={newMember.phone}
+            onChangeText={(text) => setNewMember({ ...newMember, phone: text })}
+            keyboardType="phone-pad"
+          />
+          <View style={styles.formButtons}>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={() => {
+                setIsAddingMember(false);
+                setEditingMember(null);
+                setNewMember({ name: "", email: "", phone: "" });
+              }}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.saveButton]}
+              onPress={editingMember ? handleUpdateMember : handleAddMember}
+            >
+              <Text style={styles.buttonText}>
+                {editingMember ? "Update" : "Add"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <FlatList
         data={familyMembers}
@@ -272,13 +283,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5FCFF",
-    padding: 20,
+    padding: 10,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+    marginHorizontal: 10,
   },
   title: {
     fontSize: 25,
@@ -287,51 +299,82 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: "#0074D9",
-    padding: 12,
-    borderRadius: 25,
-    width: 45,
-    height: 45,
+    padding: 10,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    marginTop: 3,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
-  memberCard: {
+  form: {
     backgroundColor: "white",
-    borderRadius: 15,
-    marginBottom: 15,
-    overflow: "hidden",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
     elevation: 3,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  cardHeader: {
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  formButtons: {
     flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#0074D9",
+  button: {
+    flex: 0.48,
+    padding: 12,
+    borderRadius: 5,
     alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
   },
-  avatarText: {
+  saveButton: {
+    backgroundColor: "#2ECC40",
+  },
+  cancelButton: {
+    backgroundColor: "#FF4136",
+  },
+  buttonText: {
     color: "white",
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "bold",
   },
-  headerInfo: {
+  list: {
+    paddingBottom: 20,
+  },
+  memberCard: {
+    marginTop: 4,
+    backgroundColor: "white",
+    borderRadius: 10,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginHorizontal: 10,
+    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  memberInfo: {
     flex: 1,
   },
   memberName: {
@@ -340,91 +383,35 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 4,
   },
-  badge: {
-    backgroundColor: "#E8F4FF",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: "flex-start",
-  },
-  badgeText: {
-    color: "#0074D9",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  cardContent: {
-    padding: 15,
-  },
-  contactInfo: {
-    marginBottom: 15,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  infoText: {
-    marginLeft: 10,
-    fontSize: 16,
+  memberDetail: {
+    fontSize: 14,
     color: "#666",
+    marginBottom: 2,
   },
-  actionButtons: {
-    marginTop: 10,
+  memberActions: {
+    flexDirection: "column",
+    alignItems: "center",
   },
   actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  locationButton: {
-    backgroundColor: "#0074D9",
-  },
-  actionButtonText: {
-    color: "white",
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  secondaryActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 10,
-  },
-  iconButton: {
     padding: 8,
-    borderRadius: 8,
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  editButton: {
-    backgroundColor: "#E8F8E8",
-  },
-  deleteButton: {
-    backgroundColor: "#FFE8E8",
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
+    marginLeft: 0,
   },
   emptyText: {
-    fontSize: 18,
+    textAlign: "center",
     color: "#666",
-    marginTop: 15,
-    textAlign: "center",
+    fontSize: 16,
+    marginTop: 20,
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: "#999",
-    marginTop: 5,
-    textAlign: "center",
+  locationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E8F4FF",
+    padding: 8,
+    borderRadius: 5,
   },
-  list: {
-    paddingBottom: 20,
+  actionButtonText: {
+    marginLeft: 5,
+    fontSize: 12,
+    color: "#0074D9",
   },
 });
