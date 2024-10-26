@@ -6,8 +6,9 @@ import { Pressable } from "react-native";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
@@ -30,59 +31,47 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "SOS",
           headerShown: false,
+          title: "Alert",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="exclamation-circle" color={color} />
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? "light"].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="myfamily"
-        options={{
-          title: "My Family",
-          headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="group" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="phone"
-        options={{
-          title: "Fake Call",
-          tabBarIcon: ({ color }) => <TabBarIcon name="phone" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="here"
-        options={{
-          title: "I'm Here",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="map-pin" color={color} />
+            <MaterialCommunityIcons name="alert-octagon" size={30} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="recordings"
         options={{
-          title: "recordings",
           headerShown: false,
+          title: "Recordings",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="clock-o" color={color} />
+            <MaterialCommunityIcons name="record-circle" size={26} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="here"
+        options={{
+          headerShown: false,
+          title: "I'm Here",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="google-maps" size={29} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="phone"
+        options={{
+          headerShown: false,
+          title: "History",
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="history" size={28} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="myfamily"
+        options={{
+          headerShown: false,
+          title: "Contacts",
+          tabBarIcon: ({ color }) => <MaterialIcons name="groups" size={36} color={color} />,
         }}
       />
     </Tabs>

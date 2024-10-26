@@ -244,7 +244,7 @@ export default function FamilyMembersPage() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Family Members</Text>
+        <Text style={styles.title}>Emergency Contacts</Text>
         {!isAddingMember && !editingMember && (
           <TouchableOpacity
             style={styles.addButton}
@@ -307,7 +307,13 @@ export default function FamilyMembersPage() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No family members added yet</Text>
+          <View style={styles.emptyContainer}>
+            <FontAwesome name="users" size={48} color="#ccc" />
+            <Text style={styles.emptyText}>No emergency contacts added yet</Text>
+            <Text style={styles.emptySubtext}>
+              Tap the + button to add someone
+            </Text>
+          </View>
         }
       />
     </View>
@@ -324,12 +330,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 75,
     marginHorizontal: 10,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 25,
+    fontWeight: "600",
     color: "#333",
   },
   addButton: {
@@ -431,11 +438,19 @@ const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 0,
   },
+  emptyContainer:{
+    justifyContent: "center",
+    alignItems: "center",
+  },
   emptyText: {
     textAlign: "center",
     color: "#666",
     fontSize: 16,
     marginTop: 20,
+  },
+  emptySubtext: {
+    color: "#666",
+    fontSize: 14,
   },
   locationButton: {
     flexDirection: "row",
