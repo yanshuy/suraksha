@@ -53,34 +53,15 @@ export default function Layout() {
             drawerLabel: "Home",
             drawerIcon: () => <Feather name="home" size={24} color="black" />,
             headerTitle: () => (
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%",
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: 16,
-                  }}
-                >
-                  <Image
-                    style={{ height: 35, width: 35, marginRight: 16 }}
-                    source={require("../../assets/icons/logo.png")}
-                  />
-                  <Text style={{ fontSize: 22, fontWeight: "600" }}>
-                    Raksha
-                  </Text>
+              <View style={styles.container}>
+                <View style={styles.titleContainer}>
+                  <Text style={styles.title}>Raksha</Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.button}
+                  style={styles.loginButton}
                   onPress={() => navigation.navigate("login" as never)}
                 >
-                  <Text style={styles.buttonText}>Login</Text>
+                  <Text style={styles.loginButtonText}>Login</Text>
                 </TouchableOpacity>
               </View>
             ),
@@ -113,17 +94,38 @@ export default function Layout() {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    backgroundColor: "black",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
+    width: "100%",
+    paddingHorizontal: 0,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
   },
-  buttonText: {
-    color: "#FFFFFF",
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#333333",
+  },
+  loginButton: {
+    backgroundColor: "black",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  ButtonText: {
+    color: "#ffffff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
+  },
+  loginButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
