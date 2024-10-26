@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Button,
 } from "react-native";
 import { Audio } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
@@ -117,9 +118,9 @@ export default function SOSPage() {
         uri: uri,
         type: "audio/m4a",
         name: "recording.m4a",
-        latitude: 1,
-        longitude: 1,
       } as any);
+      formData.append("latitude", "1");
+      formData.append("longitude", "2");
 
       const response = await fetch(
         "https://live-merely-drum.ngrok-free.app/sos/add/",
