@@ -140,6 +140,7 @@ export default function FamilyMembersPage() {
         },
       ]
     );
+    console.log(familyMembers.filter((member) => member.id !== id));
   };
 
   const { handleShareLocation } = useLocationSharing({
@@ -160,25 +161,41 @@ export default function FamilyMembersPage() {
         <Text style={styles.memberDetail}>{item.phone}</Text>
       </View>
       <View style={styles.memberActions}>
-        <TouchableOpacity
-          onPress={() => handleShareLocation(item)}
-          style={[styles.actionButton, styles.locationButton]}
+        <View>
+          <TouchableOpacity
+            onPress={() => handleShareLocation(item)}
+            style={[styles.actionButton, styles.locationButton]}
+          >
+            <FontAwesome name="location-arrow" size={20} color="#0074D9" />
+            <Text style={styles.actionButtonText}>Share Location</Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            marginTop: 5,
+            alignSelf: "flex-end",
+          }}
         >
-          <FontAwesome name="location-arrow" size={20} color="#0074D9" />
-          <Text style={styles.actionButtonText}>Share Location</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleEditMember(item)}
-          style={styles.actionButton}
-        >
-          <FontAwesome name="edit" size={20} color="#2ECC40" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleDeleteMember(item.id)}
-          style={styles.actionButton}
-        >
-          <FontAwesome name="trash" size={20} color="#FF4136" />
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleEditMember(item)}
+            style={styles.actionButton}
+          >
+            <FontAwesome
+              name="edit"
+              style={{ marginTop: 2 }}
+              size={20}
+              color="#2ECC40"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleDeleteMember(item.id)}
+            style={styles.actionButton}
+          >
+            <FontAwesome name="trash" size={20} color="#FF4136" />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -260,13 +277,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5FCFF",
-    padding: 20,
+    padding: 10,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+    marginHorizontal: 10,
   },
   title: {
     fontSize: 24,
@@ -279,6 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: 40,
     height: 40,
+    marginTop: 3,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -330,21 +349,24 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   memberCard: {
+    marginTop: 4,
     backgroundColor: "white",
     borderRadius: 10,
-    padding: 15,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginHorizontal: 10,
     marginBottom: 10,
-    flexDirection: "column",
+    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   memberInfo: {
     flex: 1,
@@ -361,12 +383,12 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   memberActions: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
   },
   actionButton: {
     padding: 8,
-    marginLeft: 10,
+    marginLeft: 0,
   },
   emptyText: {
     textAlign: "center",

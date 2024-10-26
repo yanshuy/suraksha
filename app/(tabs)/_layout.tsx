@@ -31,6 +31,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "SOS",
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="exclamation-circle" color={color} />
           ),
@@ -54,6 +55,7 @@ export default function TabLayout() {
         name="myfamily"
         options={{
           title: "My Family",
+          headerShown: false,
           tabBarIcon: ({ color }) => <TabBarIcon name="group" color={color} />,
         }}
       />
@@ -77,6 +79,7 @@ export default function TabLayout() {
         name="recordings"
         options={{
           title: "recordings",
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="clock-o" color={color} />
           ),
