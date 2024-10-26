@@ -111,13 +111,11 @@ export default function SOSPage() {
                   fontSize: 24,
                   fontWeight: "bold",
                   color: "white",
-                  marginTop: 10,
                 }
               : {
                   fontSize: 42,
                   fontWeight: "bold",
                   color: "white",
-                  marginTop: 10,
                 }
           }
         >
@@ -143,6 +141,8 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     backgroundColor: "red",
+    display: "flex",
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
