@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  Image
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 
@@ -146,9 +145,7 @@ export default function ChatbotPage() {
           placeholderTextColor="#999"
         />
         <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-          <Image style={{ height: 30, width: 30}}
-                 source={require("../../../assets/icons/send.png")}
-          />
+          <FontAwesome name="send" size={26} color="white"  style={{marginTop: 1, marginRight: 5}}/>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -230,7 +227,7 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     backgroundColor: "#007AFF",
-    borderRadius: 50,
+    borderRadius: 25,
     width: 50,
     height: 50,
     justifyContent: "center",
