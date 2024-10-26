@@ -7,7 +7,7 @@ import { Drawer } from "expo-router/drawer";
 import { Text, View } from "@/components/Themed";
 import { Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation, DrawerActions } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function Layout() {
   const navigation = useNavigation();
@@ -107,6 +107,30 @@ export default function Layout() {
             drawerIcon: () => <Feather name="user" size={24} color="black" />,
           }}
         />
+        <Drawer.Screen
+        name="recordings"
+        options={{
+          title: "",
+          drawerLabel: "Recordings",
+          drawerIcon: ({ color }) => (
+            <MaterialCommunityIcons
+              name="record-circle"
+              size={26}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="history"
+        options={{
+          title: "",
+          drawerLabel: "History",
+          drawerIcon: ({ color }) => (
+            <MaterialCommunityIcons name="history" size={28} color={color} />
+          ),
+        }}
+      />
       </Drawer>
     </GestureHandlerRootView>
   );

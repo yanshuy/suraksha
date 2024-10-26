@@ -47,10 +47,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="recordings"
+        name="chatbot"
         options={{
           headerShown: false,
-          title: "Recordings",
+          title: "ChatBot",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="record-circle"
@@ -60,7 +60,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+             <Tabs.Screen
         name="here"
         options={{
           headerShown: false,
@@ -75,12 +75,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="track"
         options={{
           headerShown: false,
-          title: "History",
+          title: "Track",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="history" size={28} color={color} />
+            <MaterialIcons name="groups" size={36} color={color} />
           ),
         }}
       />
@@ -91,16 +91,6 @@ export default function TabLayout() {
           title: "Contacts",
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="groups" size={36} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          headerShown: false,
-          title: "History",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="history" size={28} color={color} />
           ),
         }}
       />
