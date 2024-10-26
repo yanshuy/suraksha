@@ -54,6 +54,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(drawers)" options={{headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="wakeword" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

@@ -289,7 +289,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 75,
     marginHorizontal: 10,
   },
   title: {
@@ -396,11 +397,19 @@ const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 0,
   },
+  emptyContainer:{
+    justifyContent: "center",
+    alignItems: "center",
+  },
   emptyText: {
     textAlign: "center",
     color: "#666",
     fontSize: 16,
     marginTop: 20,
+  },
+  emptySubtext: {
+    color: "#666",
+    fontSize: 14,
   },
   locationButton: {
     flexDirection: "row",

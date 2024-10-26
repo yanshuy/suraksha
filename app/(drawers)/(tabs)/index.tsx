@@ -111,13 +111,11 @@ export default function SOSPage() {
                   fontSize: 24,
                   fontWeight: "bold",
                   color: "white",
-                  marginTop: 10,
                 }
               : {
                   fontSize: 42,
                   fontWeight: "bold",
                   color: "white",
-                  marginTop: 10,
                 }
           }
         >
