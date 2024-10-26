@@ -1,23 +1,39 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Button,
+} from "react-native";
 import { Audio } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const RECORDING_DURATION = 30; // 30 seconds
+
 export default function SOSPage() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [duration, setDuration] = useState(0);
   const navigation = useNavigation();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (recording) {
       interval = setInterval(() => {
-        setDuration((prevDuration) => prevDuration + 1);
+        setDuration((prevDuration) => {
+          if (prevDuration >= RECORDING_DURATION - 1) {
+            stopRecording();
+            return RECORDING_DURATION;
+          }
+          return prevDuration + 1;
+        });
       }, 1000);
     } else {
       setDuration(0);
@@ -41,6 +57,11 @@ export default function SOSPage() {
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
       setRecording(recording);
+
+      // Set timer to auto-stop after 30 seconds
+      timerRef.current = setTimeout(() => {
+        stopRecording();
+      }, RECORDING_DURATION * 1000);
     } catch (err) {
       console.error("Failed to start recording", err);
       Alert.alert("Error", "Failed to start recording. Please try again.");
@@ -56,7 +77,13 @@ export default function SOSPage() {
       setRecording(null);
       if (uri) {
         await saveRecording(uri);
-        Alert.alert("Success", "Recording saved successfully");
+        await sendRecordingToBackend(uri);
+        Alert.alert("Success", "Recording saved and sent successfully");
+      }
+
+      // Clear the auto-stop timer
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
       }
     } catch (err) {
       console.error("Failed to stop recording", err);
@@ -84,6 +111,41 @@ export default function SOSPage() {
     }
   };
 
+  const sendRecordingToBackend = async (uri: string) => {
+    try {
+      const formData = new FormData();
+      formData.append("audio", {
+        uri: uri,
+        type: "audio/m4a",
+        name: "recording.m4a",
+        latitude: 1,
+        longitude: 1,
+      } as any);
+
+      const response = await fetch(
+        "https://live-merely-drum.ngrok-free.app/sos/add/",
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization:
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMwMDAxMjU1LCJpYXQiOjE3Mjk5MTQ4NTUsImp0aSI6IjNjYzI1NGY1M2Q1NzQ5NTQ4NzNhZjU5ZWM1YTVmNDNlIiwidXNlcl9pZCI6MX0.ohIS84_s_8DTM3s5eWH-36rW6ob6lhM4bIXHe6ytwz8",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send recording to backend");
+      }
+
+      console.log("Recording sent to backend successfully");
+    } catch (error) {
+      console.error("Failed to send recording to backend", error);
+      Alert.alert("Error", "Failed to send recording to backend");
+    }
+  };
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -94,8 +156,16 @@ export default function SOSPage() {
 
   return (
     <View style={styles.container}>
+      <Button
+        title="login"
+        onPress={() => navigation.navigate("login" as never)}
+      />
       <TouchableOpacity
-        style={[styles.sosButton, recording && styles.recordingButton]}
+        style={[
+          styles.sosButton,
+          recording && styles.recordingButton,
+          recording ? { flexDirection: "column" } : { flexDirection: "row" },
+        ]}
         onPress={recording ? stopRecording : startRecording}
       >
         <FontAwesome
@@ -141,8 +211,6 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     backgroundColor: "red",
-    display: "flex",
-    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
@@ -154,7 +222,6 @@ const styles = StyleSheet.create({
   recordingButton: {
     backgroundColor: "#FF851B",
   },
-
   durationText: {
     fontSize: 48,
     fontWeight: "bold",

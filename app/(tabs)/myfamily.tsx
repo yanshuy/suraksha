@@ -45,6 +45,7 @@ export default function FamilyMembersPage() {
         setFamilyMembers(JSON.parse(stored));
       }
     } catch (error) {
+      console.error("Failed to load family members:", error);
       Alert.alert("Error", "Failed to load family members");
     }
   };
@@ -56,8 +57,11 @@ export default function FamilyMembersPage() {
         JSON.stringify(updatedMembers)
       );
       setFamilyMembers(updatedMembers);
+      return true;
     } catch (error) {
+      console.error("Failed to save family members:", error);
       Alert.alert("Error", "Failed to save family members");
+      return false;
     }
   };
 
@@ -124,23 +128,60 @@ export default function FamilyMembersPage() {
     });
   };
 
-  const handleDeleteMember = async (id: string) => {
-    Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to remove this family member?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            const updated = familyMembers.filter((member) => member.id !== id);
-            await saveFamilyMembers(updated);
+  const handleDeleteMember = (id: string) => {
+    console.log("Delete initiated for member ID:", id);
+
+    // Ensure we're working with the Platform-specific alert
+    if (Platform.OS === "web") {
+      // For web platform
+      if (
+        window.confirm("Are you sure you want to remove this family member?")
+      ) {
+        confirmDelete(id);
+      }
+    } else {
+      // For native platforms
+      Alert.alert(
+        "Confirm Delete",
+        "Are you sure you want to remove this family member?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => console.log("Delete cancelled"),
           },
-        },
-      ]
-    );
-    console.log(familyMembers.filter((member) => member.id !== id));
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => confirmDelete(id),
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  const confirmDelete = async (id: string) => {
+    console.log("Confirming delete for member ID:", id);
+    try {
+      const memberToDelete = familyMembers.find((member) => member.id === id);
+      if (!memberToDelete) {
+        console.error("Member not found:", id);
+        return;
+      }
+
+      const updated = familyMembers.filter((member) => member.id !== id);
+      const saveSuccess = await saveFamilyMembers(updated);
+
+      if (saveSuccess) {
+        console.log("Member deleted successfully:", memberToDelete.name);
+        // Optional: Show success message
+        Alert.alert("Success", "Family member removed successfully");
+      }
+    } catch (error) {
+      console.error("Error during delete:", error);
+      Alert.alert("Error", "Failed to delete family member");
+    }
   };
 
   const { handleShareLocation } = useLocationSharing({
