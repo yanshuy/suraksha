@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Button,
+} from "react-native";
 import { Audio } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
@@ -112,8 +119,8 @@ export default function SOSPage() {
         type: "audio/m4a",
         name: "recording.m4a",
       } as any);
-      formData.append("latitude", lat?.toString() || "");
-      formData.append("longitude", long?.toString() || "");
+      formData.append("latitude", "1");
+      formData.append("longitude", "2");
 
       const response = await fetch(
         "https://live-merely-drum.ngrok-free.app/sos/add/",
@@ -149,10 +156,6 @@ export default function SOSPage() {
 
   return (
     <View style={styles.container}>
-      <Button
-        title="login"
-        onPress={() => navigation.navigate("login" as never)}
-      />
       <TouchableOpacity
         style={[
           styles.sosButton,
