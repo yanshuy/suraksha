@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Button,
 } from "react-native";
 import { Audio } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
@@ -156,10 +155,6 @@ export default function SOSPage() {
 
   return (
     <View style={styles.container}>
-      <Button
-        title="login"
-        onPress={() => navigation.navigate("login" as never)}
-      />
       <TouchableOpacity
         style={[
           styles.sosButton,
@@ -210,7 +205,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "red",
+    backgroundColor: "#e04759",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
